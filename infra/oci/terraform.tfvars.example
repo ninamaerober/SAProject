@@ -1,0 +1,5 @@
+compartment_ocid     = "replace-with-compartment-ocid"
+availability_domain  = "replace-with-availability-domain"
+subnet_ocid          = "replace-with-subnet-ocid"
+image_ocid           = "replace-with-region-compatible-linux-image-ocid"
+ssh_public_key       = "replace-with-your-ssh-public-key"

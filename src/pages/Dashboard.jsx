@@ -9,7 +9,7 @@ const FLOW = [
   ['AI recommends the role', false],
   ['Manager approves', true],
   ['IT administrator reviews', true],
-  ['AD DS account created', false],
+  ['AD DS account and home folder created', false],
   ['Group assigned', false],
   ['Shared folder access', false],
 ];

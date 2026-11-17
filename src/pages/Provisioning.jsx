@@ -26,12 +26,12 @@ export default function Provisioning() {
     await rpc('provision_account', { p_request: sel.id });
     setSel(null);
     q.reload();
-  }, 'AD DS account created');
+  }, 'Simulated provisioning recorded');
 
   return (
     <>
-      <PageHeader eyebrow="Feature 04 · IT administrator" title="AD DS integration">
-        Check the script preview and run it. No account exists before this step.
+      <PageHeader eyebrow="Feature 04 · IT administrator" title="AD DS + home folder provisioning">
+        Review the account and home-folder script. This demo records the request; a trusted Windows worker is required to create resources on the file server.
       </PageHeader>
       <ErrorBox error={q.error} />
       <div className="grid two">
@@ -57,13 +57,13 @@ export default function Provisioning() {
               </ul>
               <Script code={script} />
               <div className="actions">
-                <button className="btn" disabled={busy || !script} onClick={execute}>Run script and create account</button>
+                <button className="btn" disabled={busy || !script} onClick={execute}>Record simulated provisioning</button>
               </div>
             </>
           )}
         </Card>
       </div>
-      <Card title="Already provisioned" className="mt">
+      <Card title="Provisioning history" className="mt">
         {done.length === 0 ? <Empty>Nothing yet.</Empty> : (
           <table className="table"><thead><tr><th>Employee</th><th>Group</th><th>Run</th><th>Status</th></tr></thead>
             <tbody>{done.map((r) => (

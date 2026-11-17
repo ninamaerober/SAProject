@@ -231,6 +231,15 @@ begin
     select * into d from departments where id = r.department_id;
     v_ou := 'OU=' || coalesce(d.name,'Staff') || ',DC=corp,DC=accessflow,DC=local';
     v_script := v_script ||
+      '$HomeRoot = $env:ACCESSFLOW_HOME_SHARE_ROOT' || E'\n' ||
+      '$ItAdmins = $env:ACCESSFLOW_IT_ADMINS_GROUP' || E'\n' ||
+      '$SamAccountName = ' || ps_quote(v_sam) || E'\n' ||
+      'if ([string]::IsNullOrWhiteSpace($HomeRoot)) { throw ''ACCESSFLOW_HOME_SHARE_ROOT is required'' }' || E'\n' ||
+      'if (-not $HomeRoot.StartsWith(''\\'')) { throw ''Home folder root must be a UNC share path'' }' || E'\n' ||
+      'if ([string]::IsNullOrWhiteSpace($ItAdmins)) { throw ''ACCESSFLOW_IT_ADMINS_GROUP is required'' }' || E'\n' ||
+      'if (-not (Test-Path -LiteralPath $HomeRoot -PathType Container)) { throw ''Home folder share root is not accessible'' }' || E'\n' ||
+      '$HomeDirectory = Join-Path -Path $HomeRoot -ChildPath $SamAccountName' || E'\n' ||
+      'if (Test-Path -LiteralPath $HomeDirectory) { throw ''Home folder already exists; investigate before provisioning'' }' || E'\n' ||
       'New-ADUser -Name ' || ps_quote(e.full_name) ||
       ' -SamAccountName ' || ps_quote(v_sam) ||
       ' -UserPrincipalName ' || ps_quote(v_sam || '@corp.accessflow.local') ||
@@ -238,7 +247,11 @@ begin
       ' -Title ' || ps_quote(e.job_title) ||
       ' -Department ' || ps_quote(d.name) ||
       ' -Path ' || ps_quote(v_ou) || E' `\n' ||
-      '  -AccountPassword (Read-Host -AsSecureString "Initial password") -ChangePasswordAtLogon $true -Enabled $true';
+      '  -HomeDirectory $HomeDirectory -HomeDrive ''H:'' -AccountPassword (Read-Host -AsSecureString "Initial password") -ChangePasswordAtLogon $true -Enabled $true -ErrorAction Stop' || E'\n' ||
+      'New-Item -ItemType Directory -Path $HomeDirectory -ErrorAction Stop | Out-Null' || E'\n' ||
+      '$DomainNetBIOS = (Get-ADDomain).NetBIOSName' || E'\n' ||
+      '& icacls.exe $HomeDirectory /inheritance:r /grant:r "$($DomainNetBIOS)\$($SamAccountName):(OI)(CI)M" "$($ItAdmins):(OI)(CI)F" ''SYSTEM:(OI)(CI)F''' || E'\n' ||
+      'if ($LASTEXITCODE -ne 0) { throw ''Failed to set home folder permissions'' }';
   elsif p_part = 'groups' then
     select * into g from access_groups where id = r.group_id;
     v_script := v_script ||
